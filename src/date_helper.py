@@ -1,3 +1,4 @@
+# Converted from https://raw.githubusercontent.com/k0shk0sh/The-Flash/refs/heads/master/app/src/main/java/com/fastaccess/tfl/helper/DateHelper.java
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Optional, Callable
