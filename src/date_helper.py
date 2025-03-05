@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Optional
+from typing import Optional, Callable
 import traceback
 
 
@@ -269,8 +269,147 @@ def get_date_from_days(num_of_days: int) -> str:
     return dt.strftime(DateFormats.D_DDMMyy_N.get_date_format())
 
 
+class Context:
+    pass
+
+
+class EditText:
+    def __init__(self):
+        self.text = None
+
+    def set_text(self, text: str) -> None:
+        self.text = text
+        print(f"Setting text: {text}")
+
+    def get_text(self) -> str:
+        return self.text
+
+
+class DatePickerDialog:
+    def __init__(
+            self,
+            context: Context,
+            on_date_set_listener: Callable[[int, int, int], None],
+            year: int,
+            month: int,
+            day: int
+    ) -> None:
+        self.context = context
+        self.on_date_set_listener = on_date_set_listener
+        self.year = year
+        self.month = month
+        self.day = day
+
+    def show(self) -> None:
+        # Simulate showing the dialog and triggering the onDateSet callback
+        self.on_date_set_listener(self.year, self.month, self.day)
+
+
+def date_picker_dialog(
+        context: Context,
+        date_edit_text: EditText,
+        with_time: bool,
+        date_formats: DateFormats
+) -> DatePickerDialog:
+    """
+    Simulates a date picker dialog. Equivalent to Java's `datePickerDialog`.
+    """
+    now = datetime.now()
+    now_year = now.year
+    now_month = now.month
+    now_day = now.day
+
+    # Define the onDateSet listener
+    def on_date_set(year: int, month: int, day: int) -> None:
+        new_date = datetime(year, month, day)
+        formatted_date = new_date.strftime(date_formats.get_date_format())
+        # Set the text in the EditText
+        date_edit_text.set_text(formatted_date)
+        if with_time:
+            # Show the time picker dialog if `with_time` is True
+            time_picker_dialog(context, date_edit_text, True).show()
+
+    # Create and return the DatePickerDialog
+    return DatePickerDialog(
+        context=context,
+        on_date_set_listener=on_date_set,
+        year=now_year,
+        month=now_month,
+        day=now_day
+    )
+
+
+class TimePickerDialog:
+    def __init__(
+            self,
+            context: Context,
+            on_time_set_listener: Callable[[int, int], None],
+            hour: int,
+            minute: int,
+            is_24_hour: bool
+    ) -> None:
+        self.context = context
+        self.on_time_set_listener = on_time_set_listener
+        self.hour = hour
+        self.minute = minute
+        self.is_24_hour = is_24_hour
+
+    def show(self) -> None:
+        # Simulate showing the dialog and triggering the onTimeSet callback
+        self.on_time_set_listener(self.hour, self.minute)
+
+
+def time_picker_dialog(
+        context: Context,
+        date_edit_text: EditText,
+        with_append: bool
+) -> TimePickerDialog:
+    """
+    Simulates a time picker dialog. Equivalent to Java's `timePickerDialog`.
+    """
+    now = datetime.now()
+    now_hour = now.hour
+    now_minute = now.minute
+
+    # Define the onTimeSet listener
+    def on_time_set(hour: int, minute: int) -> None:
+        new_time = datetime.now().replace(hour=hour, minute=minute)
+        formatted_time = new_time.strftime("%I:%M %p")
+
+        if with_append:
+            # Append the time to the existing text in the EditText
+            existing_text = date_edit_text.get_text()
+            date_edit_text.set_text(f"{existing_text}, {formatted_time}")
+        else:
+            # Set the time as the text in the EditText
+            date_edit_text.set_text(formatted_time)
+
+    # Create and return the TimePickerDialog
+    return TimePickerDialog(
+        context=context,
+        on_time_set_listener=on_time_set,
+        hour=now_hour,
+        minute=now_minute,
+        is_24_hour=True  # Simulate 24-hour format
+    )
+
+
 if __name__ == "__main__":
-    print(prettify_date(int(datetime.now().timestamp() * 1000)))
-    print(get_today())
-    print(get_tomorrow())
-    print(get_days_between_two_dates("01/01/2023", "02/01/2023", DateFormats.S_DDMMYYYY))
+    c = Context()
+    e = EditText()
+
+    # Simulate a time picker dialog
+    time_dialog = time_picker_dialog(
+        context=c,
+        date_edit_text=e,
+        with_append=True
+    )
+    time_dialog.show()
+
+    date_dialog = date_picker_dialog(
+        context=c,
+        date_edit_text=e,
+        with_time=True,
+        date_formats=DateFormats.D_DDMMyy
+    )
+    date_dialog.show()
