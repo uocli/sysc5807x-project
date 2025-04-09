@@ -9,6 +9,7 @@ class DateFormats(Enum):
     """
     Enum for date formats.
     """
+
     D_YYMMDD = "%y-%m-%d"
     D_DDMMyy = "%d-%m-%y"
     D_YYMMDD_N = "%y-%b-%d"
@@ -157,7 +158,9 @@ def get_tomorrow() -> str:
     return (datetime.now() + timedelta(days=1)).strftime("%d/%m/%Y")
 
 
-def get_days_between_two_dates(old: str, new_date: str, date_format: DateFormats) -> Optional[int]:
+def get_days_between_two_dates(
+    old: str, new_date: str, date_format: DateFormats
+) -> Optional[int]:
     """
     Calculates the number of days between two dates.
     Dates must be in the specified format.
@@ -176,7 +179,9 @@ def get_days_between_two_dates(old: str, new_date: str, date_format: DateFormats
         return None
 
 
-def get_hours_between_two_dates(old: str, new_date: str, date_format: DateFormats) -> Optional[int]:
+def get_hours_between_two_dates(
+    old: str, new_date: str, date_format: DateFormats
+) -> Optional[int]:
     """
     Calculates the number of hours between two dates.
     Dates must be in the specified format.
@@ -195,7 +200,9 @@ def get_hours_between_two_dates(old: str, new_date: str, date_format: DateFormat
         return None
 
 
-def get_minutes_between_two_dates(old: str, new_date: str, date_format: DateFormats) -> Optional[int]:
+def get_minutes_between_two_dates(
+    old: str, new_date: str, date_format: DateFormats
+) -> Optional[int]:
     """
     Calculates the number of minutes between two dates.
     Dates must be in the specified format.
@@ -288,12 +295,12 @@ class EditText:
 
 class DatePickerDialog:
     def __init__(
-            self,
-            context: Context,
-            on_date_set_listener: Callable[[int, int, int], None],
-            year: int,
-            month: int,
-            day: int
+        self,
+        context: Context,
+        on_date_set_listener: Callable[[int, int, int], None],
+        year: int,
+        month: int,
+        day: int,
     ) -> None:
         self.context = context
         self.on_date_set_listener = on_date_set_listener
@@ -307,10 +314,10 @@ class DatePickerDialog:
 
 
 def date_picker_dialog(
-        context: Context,
-        date_edit_text: EditText,
-        with_time: bool,
-        date_formats: DateFormats
+    context: Context,
+    date_edit_text: EditText,
+    with_time: bool,
+    date_formats: DateFormats,
 ) -> DatePickerDialog:
     """
     Simulates a date picker dialog. Equivalent to Java's `datePickerDialog`.
@@ -336,18 +343,18 @@ def date_picker_dialog(
         on_date_set_listener=on_date_set,
         year=now_year,
         month=now_month,
-        day=now_day
+        day=now_day,
     )
 
 
 class TimePickerDialog:
     def __init__(
-            self,
-            context: Context,
-            on_time_set_listener: Callable[[int, int], None],
-            hour: int,
-            minute: int,
-            is_24_hour: bool
+        self,
+        context: Context,
+        on_time_set_listener: Callable[[int, int], None],
+        hour: int,
+        minute: int,
+        is_24_hour: bool,
     ) -> None:
         self.context = context
         self.on_time_set_listener = on_time_set_listener
@@ -361,9 +368,7 @@ class TimePickerDialog:
 
 
 def time_picker_dialog(
-        context: Context,
-        date_edit_text: EditText,
-        with_append: bool
+    context: Context, date_edit_text: EditText, with_append: bool
 ) -> TimePickerDialog:
     """
     Simulates a time picker dialog. Equivalent to Java's `timePickerDialog`.
@@ -391,8 +396,29 @@ def time_picker_dialog(
         on_time_set_listener=on_time_set,
         hour=now_hour,
         minute=now_minute,
-        is_24_hour=True  # Simulate 24-hour format
+        is_24_hour=True,  # Simulate 24-hour format
     )
+
+
+def convert_date(
+    date_str: str, source_format: str, target_format: str
+) -> Optional[str]:
+    """
+    Converts a date string from one format to another.
+    :param date_str: The date string to convert
+    :param source_format: The format of the input date string
+    :param target_format: The desired output format
+    :return: The converted date string, or None if conversion failed
+    """
+    try:
+        # Parse the date according to the source format
+        date_obj = datetime.strptime(date_str, source_format)
+
+        # Format the date according to the target format
+        return date_obj.strftime(target_format)
+    except ValueError:
+        # Return None if the conversion fails
+        return None
 
 
 if __name__ == "__main__":
@@ -400,17 +426,10 @@ if __name__ == "__main__":
     e = EditText()
 
     # Simulate a time picker dialog
-    time_dialog = time_picker_dialog(
-        context=c,
-        date_edit_text=e,
-        with_append=True
-    )
+    time_dialog = time_picker_dialog(context=c, date_edit_text=e, with_append=True)
     time_dialog.show()
 
     date_dialog = date_picker_dialog(
-        context=c,
-        date_edit_text=e,
-        with_time=True,
-        date_formats=DateFormats.D_DDMMyy
+        context=c, date_edit_text=e, with_time=True, date_formats=DateFormats.D_DDMMyy
     )
     date_dialog.show()

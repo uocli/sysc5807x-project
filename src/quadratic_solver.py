@@ -21,27 +21,16 @@ def solve_quadratic(a, b, c):
 
     if discriminant < 0:  # complex roots
         sqrt = sqrt_by_newton(-1 * discriminant)
-        real = format_double((-1 * b) / (2 * a))
-        imaginary = format_double(sqrt / (2 * a))
-        # don't print redundant zeros and signs
-        output = "x1 = "
-        output += real + " + " if real != "0" else ""
-        output += imaginary if imaginary != "1" else ""
-        output += "i\nx2 = "
-        output += real + " - " if real != "0" else "-"
-        output += imaginary if imaginary != "1" else ""
-        output += "i"
-        print(output)
+        real = (-1 * b) / (2 * a)
+        imaginary = sqrt / (2 * a)
+        return complex(real, imaginary), complex(real, -imaginary)
     else:  # real roots
         sqrt = sqrt_by_newton(discriminant)
         # mixed approach to avoid subtractive cancellation
         q = (-0.5) * (b + sign(b) * sqrt)
-        x1 = format_double(q / a)
-        x2 = format_double(c / q)
-        # don't print the same root twice
-        output = "x1 = " + x1
-        output += "\nx2 = " + x2 if x1 != x2 else ""
-        print(output)
+        x1 = q / a
+        x2 = c / q
+        return x1, x2
 
 
 def sign(b):
@@ -146,7 +135,19 @@ def main():
 
         # solve equation
         try:
-            solve_quadratic(a, b, c)
+            roots = solve_quadratic(a, b, c)
+            x1, x2 = roots
+
+            if isinstance(x1, complex):
+                # Display complex roots
+                print(f"x1 = {format_double(x1.real)} + {format_double(x1.imag)}i")
+                print(f"x2 = {format_double(x2.real)} - {format_double(x2.imag)}i")
+            else:
+                # Display real roots
+                print(f"x1 = {format_double(x1)}")
+                if x1 != x2:
+                    print(f"x2 = {format_double(x2)}")
+
         except NotEnoughPrecisionException:
             print(
                 "Failed to find an accurate solution! "
