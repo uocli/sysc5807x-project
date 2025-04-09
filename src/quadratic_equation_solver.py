@@ -1,6 +1,7 @@
 """
 Converted from https://raw.githubusercontent.com/pof-mchliakh/Quadratic-Equation-Solver/refs/heads/master/Quadratic.java
 """
+
 import math
 
 ERROR = 0.00000001  # acceptable error for Newton's Method
@@ -98,28 +99,34 @@ def validate_input(input_str: str):
         formatted_str += ".0"
 
     # format value to decimal of (almost) arbitrary length
-    formatted_double = f"{double_value:.100f}".rstrip('0').rstrip('.')
+    formatted_double = f"{double_value:.100f}".rstrip("0").rstrip(".")
 
     if "." not in formatted_double:
         formatted_double += ".0"
 
     # if new value is not equal to original, overflow has occurred
-    if formatted_double != formatted_str and str(double_value) != input_str:  # str() to validation e-notation
+    if (
+        formatted_double != formatted_str and str(double_value) != input_str
+    ):  # str() to validation e-notation
         raise NotEnoughPrecisionException()
 
     return double_value
 
 
 def main():
-    print("Welcome to Quadratic Equation Solver.\n"
-          "A quadratic equation can be written in the form ax^2 + bx + c = 0, where x is an unknown, a, b, and c are constants, and a is not zero.\n"
-          "Given values for a, b, and c, this program will produce the two roots of the equation. Both real and complex roots are supported, but not complex coefficients.\n"
-          "Press Ctrl+C to quit at any time.")
+    print(
+        "Welcome to Quadratic Equation Solver.\n"
+        "A quadratic equation can be written in the form ax^2 + bx + c = 0, where x is an unknown, a, b, and c are constants, and a is not zero.\n"
+        "Given values for a, b, and c, this program will produce the two roots of the equation. Both real and complex roots are supported, but not complex coefficients.\n"
+        "Press Ctrl+C to quit at any time."
+    )
 
     while True:
         # collect input from user
         try:
-            a = validate_input(input("Enter a value for 'a': "))  # validate before storing
+            a = validate_input(
+                input("Enter a value for 'a': ")
+            )  # validate before storing
             # make sure a is not zero
             if a == 0:
                 print("'a' cannot be zero!")
@@ -127,10 +134,14 @@ def main():
             b = validate_input(input("Enter a value for 'b': "))
             c = validate_input(input("Enter a value for 'c': "))
         except NotEnoughPrecisionException:
-            print("The value you entered is too large or too small! Please enter a valid number.")
+            print(
+                "The value you entered is too large or too small! Please enter a valid number."
+            )
             continue
         except NumberFormatException:
-            print("The value you entered is not allowed! Please enter a number. E.g. 4, 0.3, -12")
+            print(
+                "The value you entered is not allowed! Please enter a number. E.g. 4, 0.3, -12"
+            )
             continue
 
         # solve equation
@@ -157,7 +168,7 @@ def main():
 
         # prompt user
         prompt = input("Would you like to try again? [y/n]: ")
-        if prompt.lower() != 'y':
+        if prompt.lower() != "y":
             break
 
     # goodbye
