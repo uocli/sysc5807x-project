@@ -1,7 +1,7 @@
 import pytest
 import time
 from src.quadratic_equation_solver import solve_quadratic, ERROR
-from category_partition.quadratic_equation_solver_categories import generate_test_cases
+from quadratic_equation_solver_categories import generate_test_cases
 
 
 def is_close(a, b, rel_tol=ERROR, abs_tol=ERROR) -> bool:
