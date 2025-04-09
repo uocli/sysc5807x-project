@@ -1,6 +1,3 @@
-# quadratic_equation_solver.py
-import itertools
-
 # Parameter a
 a_categories = {
     # We exclude 0 as a separate special case
@@ -43,17 +40,23 @@ def generate_test_cases():
     test_cases = []
 
     # Generate combinations with constraints
-    for a_cat, a_val in [
-        (cat, val) for cat in a_categories for val in a_categories[cat]
+    for a_category, a_value in [
+        (category, value)
+        for category in a_categories
+        for value in a_categories[category]
     ]:
-        for b_cat, b_val in [
-            (cat, val) for cat in b_categories for val in b_categories[cat]
+        for b_category, b_value in [
+            (category, value)
+            for category in b_categories
+            for value in b_categories[category]
         ]:
-            for c_cat, c_val in [
-                (cat, val) for cat in c_categories for val in c_categories[cat]
+            for c_category, c_value in [
+                (category, value)
+                for category in c_categories
+                for value in c_categories[category]
             ]:
                 # Create discriminant for checking result type
-                discriminant = b_val**2 - 4 * a_val * c_val
+                discriminant = b_value**2 - 4 * a_value * c_value
 
                 # Tag the test case for expected result type
                 if discriminant > 0:
@@ -63,7 +66,7 @@ def generate_test_cases():
                 else:
                     tag = "complex_roots"
 
-                test_cases.append((a_val, b_val, c_val, tag))
+                test_cases.append((a_value, b_value, c_value, tag))
 
     # Add special cases with their expected result tags
     test_cases.extend([*[(a, b, c, "special_case") for a, b, c in special_cases]])
