@@ -36,7 +36,11 @@ special_cases = [
 ]
 
 
-def generate_test_cases():
+def generate_test_cases() -> list:
+    """
+    Generate test cases for the quadratic equation solver.
+    :return: List of tuples containing (a, b, c, expected_result_tag)
+    """
     test_cases = []
 
     # Generate combinations with constraints
