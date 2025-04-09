@@ -17,7 +17,8 @@ class NumberFormatException(Exception):
 
 def solve_quadratic(a, b, c):
     discriminant = b * b - 4 * a * c
-    if math.isnan(discriminant) or discriminant == b * b:
+    # if math.isnan(discriminant) or discriminant == b * b: TODO: Faulty
+    if math.isnan(discriminant):
         raise NotEnoughPrecisionException()
 
     if discriminant < 0:  # complex roots
@@ -29,8 +30,17 @@ def solve_quadratic(a, b, c):
         sqrt = sqrt_by_newton(discriminant)
         # mixed approach to avoid subtractive cancellation
         q = (-0.5) * (b + sign(b) * sqrt)
-        x1 = q / a
-        x2 = c / q
+        # TODO: Faulty
+        # Handle q = 0 to avoid division by zero
+        if q == 0:
+            if c != 0:
+                raise ValueError("Invalid state: q=0 but c≠0.")
+            x1 = 0.0
+            x2 = -b / a  # Simplified when c = 0
+        else:
+            x1 = q / a
+            x2 = c / q
+
         return x1, x2
 
 
