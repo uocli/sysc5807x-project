@@ -159,8 +159,9 @@ def main():
 
             if isinstance(x1, complex):
                 # Display complex roots
-                print(f"x1 = {format_double(x1.real)} + {format_double(x1.imag)}i")
-                print(f"x2 = {format_double(x2.real)} - {format_double(x2.imag)}i")
+                # TODO: Faulty
+                print(f"x1 = {x1}")
+                print(f"x2 = {x2}")
             else:
                 # Display real roots
                 print(f"x1 = {format_double(x1)}")
