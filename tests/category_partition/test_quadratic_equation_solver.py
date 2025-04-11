@@ -167,8 +167,8 @@ def test_complex_roots(monkeypatch, capsys):
     simulate_inputs(monkeypatch, ["1", "2", "5", "n"])  # complex roots
     main()
     out = capsys.readouterr().out
-    assert "+ " in out or "+0." in out  # crude check for complex output
-    assert "- " in out or "-0." in out
+    assert "+" in out or "+0." in out  # crude check for complex output
+    assert "-" in out or "-0." in out
 
 
 def test_equal_real_roots(monkeypatch, capsys):
