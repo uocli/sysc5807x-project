@@ -34,8 +34,13 @@ def solve_quadratic(a, b, c):
             x1 = 0.0
             x2 = -b / a  # Simplified when c = 0
         else:
-            x1 = q / a
-            x2 = c / q
+            # TODO: Faulty when a = 0 (linear equation) bx + c = 0 => x = -c/b
+            if a == 0:
+                x1 = -1 * c / b
+                x2 = -1 * c / b
+            else:
+                x1 = q / a
+                x2 = c / q
 
         return x1, x2
 
