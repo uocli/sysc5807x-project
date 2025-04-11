@@ -356,3 +356,37 @@ def test_edge_cases():
     inputs3 = ["0.001", "1", "0", "n"]
     output3 = run_main_with_inputs(inputs3)
     assert "x1 = 0" in output3 or "x2 = 0" in output3
+
+
+def test_nan_discriminant_branch():
+    """
+    Test the specific branch that handles NaN discriminant.
+    This directly tests the 'math.isnan(discriminant)' branch.
+    """
+    # NaN can result from operations like 0/0 or sqrt(-1)
+    # For the discriminant b²-4ac to be NaN, we can use inputs that create NaN
+
+    # Method 1: Using "nan" string directly
+    inputs1 = ["1", "nan", "1", "y", "1", "-3", "2", "n"]
+    output1 = run_main_with_inputs(inputs1)
+
+    # Check that it handles the NaN case and recovers
+    assert (
+        "precision" in output1.lower()
+        or "accurate solution" in output1.lower()
+        or "EXCEPTION:" in output1
+    )
+    assert "x1 = " in output1  # Should recover and solve valid equation
+
+    # Method 2: Using operations that produce NaN (like 0/0)
+    # This might be harder to inject directly, but we can try values known to cause problems
+    inputs2 = ["0/0", "1", "1", "1", "-3", "2", "n"]
+    output2 = run_main_with_inputs(inputs2)
+
+    # Should either parse as invalid or handle NaN if it gets through
+    assert (
+        "not allowed" in output2.lower()
+        or "precision" in output2.lower()
+        or "EXCEPTION:" in output2
+    )
+    assert "x1 = " in output2  # Should recover and solve valid equation
