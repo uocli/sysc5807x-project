@@ -15,30 +15,26 @@ Metamorphic relations implemented:
 import time
 from datetime import datetime
 
-from src.date_format_converter import convert_date, DateFormats
+from src.date_format_converter import convert_date
 
 
 # Define metamorphic relations
-def mr1_round_trip(date_str, src_format, tgt_format):
+def mr1_round_trip(date_str: str, source_format: str, target_format: str) -> bool:
     """
     MR1: Converting from A -> B -> A should return the original date.
-
-    Args:
-        date_str: Original date string
-        src_format: Source format string
-        tgt_format: Target format string
-
-    Returns:
-        bool: True if the relation holds, False otherwise
+    :param date_str: date string to convert
+    :param source_format: source format
+    :param target_format: target format
+    :return: True if the relation holds, False otherwise
     """
     try:
         # First conversion: A -> B
-        intermediate = convert_date(date_str, src_format, tgt_format)
+        intermediate = convert_date(date_str, source_format, target_format)
         if intermediate is None:
             return True  # Skip if first conversion fails (invalid input)
 
         # Second conversion: B -> A
-        result = convert_date(intermediate, tgt_format, src_format)
+        result = convert_date(intermediate, target_format, source_format)
 
         # Compare original and final results
         return date_str == result
@@ -47,18 +43,16 @@ def mr1_round_trip(date_str, src_format, tgt_format):
         return False
 
 
-def mr2_transitive_conversion(date_str, format1, format2, format3):
+def mr2_transitive_conversion(
+    date_str: str, format1: str, format2: str, format3: str
+) -> bool:
     """
     MR2: Converting A -> B -> C should give same result as A -> C directly.
-
-    Args:
-        date_str: Original date string
-        format1: First format string
-        format2: Second format string
-        format3: Third format string
-
-    Returns:
-        bool: True if the relation holds, False otherwise
+    :param date_str: date string to convert
+    :param format1: date format A
+    :param format2: date format B
+    :param format3: date format C
+    :return: True if the relation holds, False otherwise
     """
     try:
         # Direct conversion: A -> C
@@ -80,27 +74,23 @@ def mr2_transitive_conversion(date_str, format1, format2, format3):
         return False
 
 
-def mr3_semantic_equality(date_str, src_format, tgt_format):
+def mr3_semantic_equality(date_str, source_format, target_format) -> bool:
     """
     MR3: The date should remain semantically the same after conversion.
-
-    Args:
-        date_str: Original date string
-        src_format: Source format string
-        tgt_format: Target format string
-
-    Returns:
-        bool: True if the relation holds, False otherwise
+    :param date_str: Original date string
+    :param source_format: Source format
+    :param target_format: Target format
+    :return: True if the relation holds, False otherwise
     """
     try:
         # Convert the date
-        converted = convert_date(date_str, src_format, tgt_format)
+        converted = convert_date(date_str, source_format, target_format)
         if converted is None:
             return True  # Skip if conversion fails
 
         # Parse both dates as datetime objects
-        original_dt = datetime.strptime(date_str, src_format)
-        converted_dt = datetime.strptime(converted, tgt_format)
+        original_dt = datetime.strptime(date_str, source_format)
+        converted_dt = datetime.strptime(converted, target_format)
 
         # Compare year, month, day components
         return (
@@ -116,9 +106,7 @@ def mr3_semantic_equality(date_str, src_format, tgt_format):
 def get_seed_dates():
     """
     Define seed date test cases covering different scenarios.
-
-    Returns:
-        list: List of (date_str, format) tuples for testing
+    :return: List of tuples (date_str, format) for testing
     """
     return [
         ("2023-05-15", "%Y-%m-%d"),  # Standard date
@@ -132,12 +120,10 @@ def get_seed_dates():
     ]
 
 
-def get_test_formats():
+def get_test_formats() -> list:
     """
     Define test formats to use for conversions.
-
-    Returns:
-        list: List of format strings
+    :return: List of format strings
     """
     return [
         "%Y-%m-%d",  # YYYY-MM-DD
@@ -149,9 +135,10 @@ def get_test_formats():
     ]
 
 
-# Test MR1: Round trip conversion
 def test_mr1_round_trip():
-    """Test metamorphic relation: round trip conversion."""
+    """
+    Test metamorphic relation: round trip conversion.
+    """
     start_time = time.time()
     results = []
 
@@ -178,9 +165,10 @@ def test_mr1_round_trip():
     )
 
 
-# Test MR2: Transitive conversion
 def test_mr2_transitive_conversion():
-    """Test metamorphic relation: transitive conversion."""
+    """
+    Test metamorphic relation: transitive conversion.
+    """
     start_time = time.time()
     results = []
 
@@ -224,9 +212,10 @@ def test_mr2_transitive_conversion():
     )
 
 
-# Test MR3: Semantic equality
 def test_mr3_semantic_equality():
-    """Test metamorphic relation: semantic equality."""
+    """
+    Test metamorphic relation: semantic equality.
+    """
     start_time = time.time()
     results = []
 
@@ -253,9 +242,10 @@ def test_mr3_semantic_equality():
     )
 
 
-# Test edge cases
 def test_edge_cases():
-    """Test conversion edge cases."""
+    """
+    Test conversion edge cases.
+    """
     # Test year boundary
     assert mr3_semantic_equality(
         "31/12/2022", "%d/%m/%Y", "%Y-%m-%d"
