@@ -1,6 +1,11 @@
-import pytest
+import builtins
+import os
+import subprocess
 import time
-from src.quadratic_equation_solver import solve_quadratic, ERROR
+
+import pytest
+
+from src.quadratic_equation_solver import ERROR, main, solve_quadratic
 from quadratic_equation_solver_categories import generate_test_cases
 
 
@@ -133,3 +138,105 @@ def test_solve_quadratic(a, b, c, tag):
         else:
             # Unexpected error
             raise e
+
+
+def simulate_inputs(monkeypatch, inputs):
+    """
+    Simulate user inputs for testing purposes.
+    """
+    iterator = iter(inputs)
+    monkeypatch.setattr(builtins, "input", lambda _: next(iterator))
+
+
+def test_a_equals_zero(monkeypatch, capsys):
+    """
+    Test the case where 'a' is zero, which should prompt a retry.
+    """
+    simulate_inputs(monkeypatch, ["0", "1", "-2", "1", "n"])  # a=0 -> retry
+    main()
+    out = capsys.readouterr().out
+    assert "'a' cannot be zero" in out
+    assert "x1 = 1" in out
+    assert "x2 = 1" not in out, "x2 shouldn't be printed as x1 == x2"
+
+
+def test_complex_roots(monkeypatch, capsys):
+    """
+    Test the case where the roots are complex.
+    """
+    simulate_inputs(monkeypatch, ["1", "2", "5", "n"])  # complex roots
+    main()
+    out = capsys.readouterr().out
+    assert "+ " in out or "+0." in out  # crude check for complex output
+    assert "- " in out or "-0." in out
+
+
+def test_equal_real_roots(monkeypatch, capsys):
+    simulate_inputs(monkeypatch, ["1", "2", "1", "n"])  # one root
+    main()
+    out = capsys.readouterr().out
+    assert "x1 = -1" in out
+    assert "x2" not in out or "x2 = -1" not in out  # x2 shouldn't be printed
+
+
+def test_retry_then_exit(monkeypatch, capsys):
+    """
+    Test the case where the user retries and then exits.
+    """
+    simulate_inputs(monkeypatch, ["1", "0", "-1", "y", "1", "2", "5", "n"])
+    main()
+    out = capsys.readouterr().out
+    assert out.count("x1") >= 2
+    assert "Thank you for using" in out
+
+
+def test_invalid_input_handling_nan(monkeypatch, capsys):
+    """
+    Test the case where the input is 'nan', which is not a valid number for 'a'.
+    """
+    simulate_inputs(monkeypatch, ["nan", "2", "3", "n"])  # a = NaN
+    main()
+    out = capsys.readouterr().out
+    assert "Failed to find an accurate solution!" in out
+
+
+def test_invalid_input_handling_abc(monkeypatch, capsys):
+    """ "
+    Test the case where the input is not a number (e.g., 'abc').
+    """
+    simulate_inputs(monkeypatch, ["abc", "2", "3", "4", "n"])
+    main()
+    out = capsys.readouterr().out
+    assert "The value you entered is not allowed!" in out
+
+
+def test_not_enough_precision_exception(monkeypatch, capsys):
+    """
+    Test the case where the input is too large or too small, causing a precision error.
+    """
+    simulate_inputs(monkeypatch, ["0.123456789123456789", "2", "3", "4", "n"])
+    main()
+    out = capsys.readouterr().out
+    assert "The value you entered is too large or too small!" in out
+
+
+def test_run_script():
+    """
+    Test the script execution with simulated user input.
+    """
+    current_dir = os.path.dirname(__file__)
+    script_path = os.path.join(
+        current_dir, "..", "..", "src", "quadratic_equation_solver.py"
+    )
+    user_input = "1\n2\n3\nn\n"  # Adjust these as per the input expected by your script
+    out = subprocess.run(
+        ["python3", script_path],
+        input=user_input,  # Simulate the user input
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    assert (
+        out.returncode == 0
+    ), f"Script failed with return code {out.returncode} and stderr: {out.stderr}"
+    assert "Welcome to Quadratic Equation Solver" in out.stdout
