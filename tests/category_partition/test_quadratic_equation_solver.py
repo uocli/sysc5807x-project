@@ -1,50 +1,11 @@
 import builtins
-import os
-import subprocess
 import time
 
+import numpy as np
 import pytest
 
-from src.quadratic_equation_solver import ERROR, main, solve_quadratic
+from src.quadratic_equation_solver import main, solve_quadratic
 from quadratic_equation_solver_categories import generate_test_cases
-
-
-def is_close(a, b, rel_tol=ERROR, abs_tol=ERROR) -> bool:
-    """
-    Check if two values are close (supports real and complex numbers)
-    :param a: First value (int/float/complex)
-    :param b: Second value (int/float/complex)
-    :param rel_tol: Maximum allowed relative difference (default 1e-9)
-    :param abs_tol: Minimum absolute difference threshold (default 1e-9)
-    :return: True if values are considered close, False otherwise
-    """
-    # Handle NaN cases
-    if (a != a) or (b != b):  # NaN check
-        return False
-
-    # Convert both to complex to handle mixed real/complex comparisons
-    a = complex(a)
-    b = complex(b)
-
-    # Check real and imaginary components independently
-    for a_part, b_part in [(a.real, b.real), (a.imag, b.imag)]:
-        # Short-circuit for exact equality or both infinite
-        if a_part == b_part:
-            continue
-
-        # Magnitude scaling for relative tolerance
-        max_mag = max(abs(a_part), abs(b_part))
-
-        # Calculate effective tolerance
-        tol = max(rel_tol * max_mag, abs_tol)
-
-        # Absolute difference for this component
-        diff = abs(a_part - b_part)
-
-        if diff > tol:
-            return False
-
-    return True
 
 
 def verify_roots(a, b, c, roots) -> bool:
@@ -68,7 +29,7 @@ def verify_roots(a, b, c, roots) -> bool:
                 return roots == ("No solution",)
         else:
             # b!= 0, linear equation with one root: x = -c/b
-            return len(roots) == 1 and is_close(roots[0], -c / b)
+            return len(roots) == 1 and np.isclose(roots[0], -c / b)
     else:
         # a != 0, check if all roots are valid by substituting them back into the equation
         for root in roots:
@@ -80,7 +41,7 @@ def verify_roots(a, b, c, roots) -> bool:
             result = a * root**2 + b * root + c
             print("Result:", result)
             # Result should be close to zero for a valid root
-            if not is_close(result, 0):
+            if not np.isclose(result, 0):
                 return False
 
         # Also verify the number and type of roots based on discriminant
@@ -92,15 +53,15 @@ def verify_roots(a, b, c, roots) -> bool:
                 len(roots) == 2
                 and isinstance(roots[0], (int, float))
                 and isinstance(roots[1], (int, float))
-                and not is_close(roots[0], roots[1])
+                and not np.isclose(roots[0], roots[1])
             )
-        elif is_close(discriminant, 0):
+        elif np.isclose(discriminant, 0):
             # Should have one repeated real root (or two equal roots)
             return (
                 len(roots) == 2
                 and isinstance(roots[0], (int, float))
                 and isinstance(roots[1], (int, float))
-                and is_close(roots[0], roots[1])
+                and np.isclose(roots[0], roots[1])
             )
         else:
             # Should have two complex conjugate roots
@@ -108,8 +69,8 @@ def verify_roots(a, b, c, roots) -> bool:
                 len(roots) == 2
                 and isinstance(roots[0], complex)
                 and isinstance(roots[1], complex)
-                and is_close(roots[0].real, roots[1].real)
-                and is_close(roots[0].imag, -roots[1].imag)
+                and np.isclose(roots[0].real, roots[1].real)
+                and np.isclose(roots[0].imag, -roots[1].imag)
             )
 
 
