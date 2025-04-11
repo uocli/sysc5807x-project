@@ -11,10 +11,6 @@ class NotEnoughPrecisionException(Exception):
     pass
 
 
-class NumberFormatException(Exception):
-    pass
-
-
 def solve_quadratic(a, b, c):
     discriminant = b * b - 4 * a * c
     # if math.isnan(discriminant) or discriminant == b * b: TODO: Faulty
@@ -76,21 +72,18 @@ def sqrt_by_newton(value):
     return result
 
 
-def format_double(value):
+def format_double(value) -> str:
     """
     Checks whether a double value actually represents an integer,
     and formats accordingly.
     :param value: the double value to format
     :return: the formatted double value
     """
-    try:
-        # check if value is actually an integer
-        if math.floor(value) == value:
-            return str(int(value))
-        else:
-            return str(value)
-    except Exception:
-        raise NumberFormatException()
+    # check if value is actually an integer
+    if math.floor(value) == value:
+        return str(int(value))
+    else:
+        return str(value)
 
 
 def validate_input(input_str: str):
@@ -148,7 +141,7 @@ def main():
                 "The value you entered is too large or too small! Please enter a valid number."
             )
             continue
-        except NumberFormatException:
+        except ValueError:
             print(
                 "The value you entered is not allowed! Please enter a number. E.g. 4, 0.3, -12"
             )
