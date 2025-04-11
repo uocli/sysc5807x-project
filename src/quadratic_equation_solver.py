@@ -30,7 +30,7 @@ def solve_quadratic(a, b, c):
         # Handle q = 0 to avoid division by zero
         if q == 0:
             if c != 0:
-                raise ValueError("Invalid state: q=0 but c≠0.")
+                raise ValueError("Invalid state: q == 0 but c != 0.")
             x1 = 0.0
             x2 = -b / a  # Simplified when c = 0
         else:

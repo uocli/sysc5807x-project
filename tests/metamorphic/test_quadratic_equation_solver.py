@@ -1,5 +1,7 @@
 import cmath
 import math
+from unittest.mock import patch
+import pytest
 
 from hypothesis import given, strategies as st, settings, note
 
@@ -97,6 +99,22 @@ def test_mr1_coefficient_scale(a, b, c, scale):
     assert roots_satisfy_equation(
         a * scale, b * scale, c * scale, scaled_roots
     ), f"Scaled roots {scaled_roots} don't satisfy equation {a*scale}x^2 + {b*scale}x + {c*scale} = 0"
+
+
+def test_q_zero_and_c_nonzero_metaphorically():
+    """
+    Test the case where q=0 but c is not 0 for branch coverage
+    :return:
+    """
+    a = 1.0
+    b = 2.0
+    c = 1.0
+    with patch(
+        "src.quadratic_equation_solver.sqrt_by_newton", return_value=-2.0
+    ), patch("src.quadratic_equation_solver.sign", return_value=1):
+
+        with pytest.raises(ValueError, match="q == 0 but c != 0"):
+            solve_quadratic(a, b, c)
 
 
 @settings(max_examples=100)
