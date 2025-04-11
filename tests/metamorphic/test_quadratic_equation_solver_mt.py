@@ -2,11 +2,11 @@ import io
 import re
 
 from contextlib import redirect_stdout
-from hypothesis import given, strategies as st, settings, note
+from hypothesis import given, strategies as st, settings, note, assume
 import numpy as np
 from unittest.mock import patch
 
-from src.quadratic_equation_solver import main
+from src.quadratic_equation_solver import main, solve_quadratic
 
 
 complex_pattern = re.compile(r"[+-]?\d*\.?\d+j")
@@ -52,18 +52,17 @@ from hypothesis import strategies as st
 def complex_roots_inputs(draw):
     """Generate coefficients (a, b, c) ensuring complex roots (b² < 4ac)"""
     # Generate b first
-    b = draw(st.floats(min_value=-50, max_value=50))
+    b = draw(st.floats(min_value=-50, max_value=50, exclude_min=True, exclude_max=True))
 
     # Calculate minimum 'a' to ensure c_min <= 50
-    a_min = (abs(b) ** 2 + 1) / 200  # Ensures (b² + 1)/(4a_min) = 50
-    a = draw(
-        st.floats(min_value=a_min, max_value=50).filter(lambda x: abs(x) > 1e-3)
-    )  # Avoid tiny 'a'
+    a_min = (abs(b) ** 2 + 1) / 200 + 1e-10  # Buffer ensures a > a_min_math
+    a = draw(st.floats(min_value=a_min, max_value=50).filter(lambda x: abs(x) > 1e-3))
 
-    # Calculate c_min and generate 'c' within valid range
-    c_min = (b**2 + 1) / (4 * a)
+    # Calculate c_min and ensure it's <=50.0
+    c_min = (b ** 2 + 1) / (4 * a)
+    assume(c_min <= 50.0)  # Skip invalid cases due to floating-point errors
+
     c = draw(st.floats(min_value=c_min, max_value=50))
-
     return [str(a), str(b), str(c), "n"]
 
 
