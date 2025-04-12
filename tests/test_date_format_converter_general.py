@@ -8,7 +8,7 @@ def test_run_script():
     """
     current_dir = os.path.dirname(__file__)
     script_path = os.path.join(current_dir, "..", "src", "date_format_converter.py")
-    out = subprocess.run(
+    subprocess.run(
         ["python3", script_path],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,

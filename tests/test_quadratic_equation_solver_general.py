@@ -33,7 +33,7 @@ def test_run_script():
     current_dir = os.path.dirname(__file__)
     script_path = os.path.join(current_dir, "..", "src", "quadratic_equation_solver.py")
     user_input = "1\n2\n3\nn\n"  # Adjust these as per the input expected by your script
-    out = subprocess.run(
+    subprocess.run(
         ["python3", script_path],
         input=user_input,  # Simulate the user input
         stdout=subprocess.PIPE,
