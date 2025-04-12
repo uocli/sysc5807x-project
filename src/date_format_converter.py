@@ -238,7 +238,7 @@ def parse_any_date(date: str) -> Optional[int]:
             dt = datetime.strptime(date, fmt.get_date_format())
             dt = dt.replace(tzinfo=timezone.utc)
             return int(dt.timestamp() * 1000)
-        except ValueError:
+        except (ValueError, TypeError, AttributeError):  # TODO: faulty
             traceback.print_exc()
             continue
     return None

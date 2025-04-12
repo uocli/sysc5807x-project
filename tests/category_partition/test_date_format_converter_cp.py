@@ -354,7 +354,6 @@ class TestDateParsing:
     )
     def test_parse_any_date(self, date_str, expected):
         result = parse_any_date(date_str)
-        print("Result:", result)
         assert result == expected if expected else result is None
 
     @pytest.mark.parametrize(
