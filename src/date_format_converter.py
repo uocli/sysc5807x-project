@@ -68,7 +68,7 @@ def prettify_date(timestamp: int) -> str:
     If the date is today, returns time in "hh:mm a" format.
     Otherwise, returns date and time in "dd MMM hh:mm a" format.
     """
-    date = datetime.fromtimestamp(timestamp / 1000)
+    date = datetime.fromtimestamp(timestamp / 1000, tz=timezone.utc)
     if date.date() == datetime.today().date():
         return date.strftime("%I:%M %p")
     else:
@@ -93,7 +93,9 @@ def get_date_only_str(date: str) -> Optional[int]:
     Parses a date string in "dd/MM/yyyy" format and returns the timestamp.
     """
     try:
-        return int(datetime.strptime(date, "%d/%m/%Y").timestamp() * 1000)
+        dt = datetime.strptime(date, "%d/%m/%Y")
+        dt = dt.replace(tzinfo=timezone.utc)
+        return int(dt.timestamp() * 1000)
     except ValueError:
         traceback.print_exc()
         return None
@@ -110,7 +112,8 @@ def get_date_and_time(timestamp: int) -> str:
     """
     Formats a timestamp into a date and time string in "dd/MM/yyyy, hh:mm a" format.
     """
-    return datetime.fromtimestamp(timestamp / 1000).strftime("%d/%m/%Y, %I:%M %p")
+    dt = datetime.fromtimestamp(timestamp / 1000, tz=timezone.utc)
+    return dt.strftime("%d/%m/%Y, %I:%M %p")
 
 
 def get_date_and_time_str(time: str) -> str:
@@ -122,7 +125,7 @@ def get_date_and_time_str(time: str) -> str:
         # Convert the string timestamp to an integer
         time_long = int(time)
         # Convert the timestamp to a datetime object
-        date = datetime.fromtimestamp(time_long / 1000, tz=timezone.utc) # TODO: Faulty
+        date = datetime.fromtimestamp(time_long / 1000, tz=timezone.utc)  # TODO: Faulty
         # Format the date and time
         return date.strftime("%d/%m/%Y, %I:%M %p")  # dd/MM/yyyy, hh:mm a
     except ValueError:
@@ -233,6 +236,7 @@ def parse_any_date(date: str) -> Optional[int]:
     for fmt in DateFormats:
         try:
             dt = datetime.strptime(date, fmt.get_date_format())
+            dt = dt.replace(tzinfo=timezone.utc)
             return int(dt.timestamp() * 1000)
         except ValueError:
             traceback.print_exc()
