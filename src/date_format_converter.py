@@ -1,5 +1,5 @@
 # Converted from https://raw.githubusercontent.com/k0shk0sh/The-Flash/refs/heads/master/app/src/main/java/com/fastaccess/tfl/helper/DateHelper.java
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Optional, Callable
 import traceback
@@ -81,7 +81,7 @@ def prettify_date_str(timestamp: str) -> str:
     If the date is today, returns time in "hh:mm a" format.
     Otherwise, returns date and time in "dd MMM hh:mm a" format.
     """
-    date = datetime.fromtimestamp(int(timestamp) / 1000)
+    date = datetime.fromtimestamp(int(timestamp) / 1000, timezone.utc)
     if date.date() == datetime.today().date():
         return date.strftime("%I:%M %p")
     else:
@@ -122,7 +122,7 @@ def get_date_and_time_str(time: str) -> str:
         # Convert the string timestamp to an integer
         time_long = int(time)
         # Convert the timestamp to a datetime object
-        date = datetime.fromtimestamp(time_long / 1000)
+        date = datetime.fromtimestamp(time_long / 1000, tz=timezone.utc) # TODO: Faulty
         # Format the date and time
         return date.strftime("%d/%m/%Y, %I:%M %p")  # dd/MM/yyyy, hh:mm a
     except ValueError:
@@ -134,7 +134,9 @@ def get_time_only(timestamp: int) -> str:
     """
     Formats a timestamp into a time string in "hh:mm a" format.
     """
-    return datetime.fromtimestamp(timestamp / 1000).strftime("%I:%M %p")
+    return datetime.fromtimestamp(timestamp / 1000, tz=timezone.utc).strftime(
+        "%I:%M %p"
+    )
 
 
 def get_today_with_time() -> str:
