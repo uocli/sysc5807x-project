@@ -98,17 +98,20 @@ class TestTimeComponents:
 class TestUIDatePicker:
     """Category: Date picker interactions"""
 
+    @freeze_time("2023-07-15 04:30:45")
     @pytest.mark.parametrize(
-        "day, month, expected",
+        "day, month, with_time, expected",
         [
-            (31, 1, "31-01-2023"),  # January
-            (28, 2, "28-02-2023"),  # Non-leap year
-            (30, 4, "30-04-2023"),  # April
+            (31, 1, False, "31-01-2023"),  # January
+            (28, 2, False, "28-02-2023"),  # Non-leap year
+            (30, 4, True, "30-04-2023, 04:30 AM"),  # April
         ],
     )
-    def test_month_day_combinations(self, day, month, expected):
+    def test_month_day_combinations(self, day, month, with_time, expected):
         edit_text = EditText()
-        dialog = date_picker_dialog(Context(), edit_text, False, DateFormats.D_DDMMYYYY)
+        dialog = date_picker_dialog(
+            Context(), edit_text, with_time, DateFormats.D_DDMMYYYY
+        )
         dialog.on_date_set_listener(2023, month, day)
         assert edit_text.get_text() == expected
 
@@ -122,6 +125,7 @@ class TestUIDatePicker:
 class TestDateFormatting:
     """Tests for date prettification and basic formatting"""
 
+    @freeze_time("2023-07-15 04:30:45")
     @pytest.mark.parametrize(
         "timestamp,expected_pattern",
         [
@@ -225,6 +229,12 @@ class TestDateCalculations:
                 DateFormats.D_DDMMYYYYHHMMA,
                 -1440,
             ),
+            (
+                "invalid-date",
+                "02-07-2023, 12:00AM",
+                DateFormats.D_DDMMYYYYHHMMA,
+                None,
+            ),
         ],
     )
     def test_get_minutes_between_two_dates(self, date1, date2, fmt, expected):
@@ -286,10 +296,11 @@ class TestUIComponents:
 class TestDatePrettification:
     """Tests for date prettification methods"""
 
+    @freeze_time("2023-07-15 04:30:45")
     @pytest.mark.parametrize(
         "timestamp,expected",
         [
-            (1689379200000, "15 Jul 12:00 AM"),  # 2023-07-15 14:00
+            (1689379200000, "12:00 AM"),  # 2023-07-15 14:00
             (0, "01 Jan 12:00 AM"),  # Epoch
             (1640995200000, "01 Jan 12:00 AM"),  # 2022-01-01
         ],

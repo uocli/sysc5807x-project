@@ -380,6 +380,7 @@ def time_picker_dialog(
     Simulates a time picker dialog. Equivalent to Java's `timePickerDialog`.
     """
     now = datetime.now()
+    now = now.replace(tzinfo=timezone.utc)
     now_hour = now.hour
     now_minute = now.minute
 
