@@ -254,10 +254,11 @@ def parse_date(date: str, date_format: DateFormats) -> Optional[int]:
     """
     try:
         dt = datetime.strptime(date, date_format.get_date_format())
+        dt = dt.replace(tzinfo=timezone.utc)
         return int(dt.timestamp() * 1000)
     except ValueError:
         traceback.print_exc()
-        return 0
+        return None
 
 
 def get_desired_format(date_format: DateFormats, date: Optional[int] = None) -> str:

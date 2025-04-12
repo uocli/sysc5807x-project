@@ -1,7 +1,8 @@
 import re
 from datetime import datetime, timedelta, timezone
-import pytest
+
 from freezegun import freeze_time
+import pytest
 
 from date_format_converter import (
     DateFormats,
@@ -38,7 +39,7 @@ class TestValidDates:
     @pytest.mark.parametrize(
         "date_str, fmt",
         [
-            ("15/07/2023", DateFormats.D_DDMMYYYY),
+            ("15/07/2023", DateFormats.S_DDMMYYYY),
             ("2023-07-15", DateFormats.D_YYYYMMDD),
             ("15-Jul-2023", DateFormats.D_DDMMYYYY_N),
         ],
@@ -55,11 +56,11 @@ class TestInvalidDates:
         [
             ("32/13/2023", DateFormats.D_DDMMYYYY),
             ("2023-02-30", DateFormats.D_YYYYMMDD),
-            ("not-a-date", DateFormats.D_YYYYMMDD),
+            ("not-a-date", DateFormats.D_DDMMyy),
         ],
     )
     def test_parsing_invalid_dates(self, date_str, fmt):
-        assert parse_date(date_str, fmt) == 0
+        assert parse_date(date_str, fmt) is None
 
 
 class TestBoundaryConditions:
