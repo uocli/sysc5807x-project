@@ -1,7 +1,7 @@
 import builtins
 import pytest
 
-from src.quadratic_equation_solver import main
+from quadratic_equation_solver import main
 
 
 def generate_main_test_cases():

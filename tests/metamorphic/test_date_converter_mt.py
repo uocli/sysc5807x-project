@@ -15,7 +15,7 @@ Metamorphic relations implemented:
 import time
 from datetime import datetime
 
-from src.date_format_converter import convert_date
+from date_format_converter import convert_date
 
 
 # Define metamorphic relations

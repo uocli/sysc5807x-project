@@ -6,7 +6,7 @@ from hypothesis import given, strategies as st, settings, note, assume
 import numpy as np
 from unittest.mock import patch
 
-from src.quadratic_equation_solver import main, solve_quadratic
+from quadratic_equation_solver import main
 
 
 complex_pattern = re.compile(r"[+-]?\d*\.?\d+j")
@@ -59,7 +59,7 @@ def complex_roots_inputs(draw):
     a = draw(st.floats(min_value=a_min, max_value=50).filter(lambda x: abs(x) > 1e-3))
 
     # Calculate c_min and ensure it's <=50.0
-    c_min = (b ** 2 + 1) / (4 * a)
+    c_min = (b**2 + 1) / (4 * a)
     assume(c_min <= 50.0)  # Skip invalid cases due to floating-point errors
 
     c = draw(st.floats(min_value=c_min, max_value=50))

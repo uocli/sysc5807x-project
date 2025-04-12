@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-from src.quadratic_equation_solver import solve_quadratic
+from quadratic_equation_solver import solve_quadratic
 
 
 def test_q_zero_c_non_zero():

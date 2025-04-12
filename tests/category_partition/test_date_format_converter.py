@@ -2,7 +2,7 @@ import time
 from datetime import datetime
 from typing import Optional
 
-from src.date_format_converter import convert_date, DateFormats
+from date_format_converter import convert_date, DateFormats
 
 
 def generate_date_inputs() -> dict:

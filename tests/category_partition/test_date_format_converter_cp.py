@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 import pytest
 from freezegun import freeze_time
 
-from src.date_format_converter import (
+from date_format_converter import (
     DateFormats,
     prettify_date,
     prettify_date_str,
