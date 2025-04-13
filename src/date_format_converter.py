@@ -408,27 +408,6 @@ def time_picker_dialog(
     )
 
 
-def convert_date(
-    date_str: str, source_format: str, target_format: str
-) -> Optional[str]:
-    """
-    Converts a date string from one format to another.
-    :param date_str: The date string to convert
-    :param source_format: The format of the input date string
-    :param target_format: The desired output format
-    :return: The converted date string, or None if conversion failed
-    """
-    try:
-        # Parse the date according to the source format
-        date_obj = datetime.strptime(date_str, source_format)
-
-        # Format the date according to the target format
-        return date_obj.strftime(target_format)
-    except ValueError:
-        # Return None if the conversion fails
-        return None
-
-
 if __name__ == "__main__":
     c = Context()
     e = EditText()
