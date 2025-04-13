@@ -1,10 +1,10 @@
 import io
 import re
-
 from contextlib import redirect_stdout
+
 from hypothesis import given, strategies as st, settings, note, assume
-import numpy as np
 from unittest.mock import patch
+import numpy as np
 
 from quadratic_equation_solver import main
 
@@ -45,12 +45,9 @@ def real_distinct_roots_inputs(draw):
     return [str(a), str(b), str(c), "n"]
 
 
-from hypothesis import strategies as st
-
-
 @st.composite
 def complex_roots_inputs(draw):
-    """Generate coefficients (a, b, c) ensuring complex roots (b² < 4ac)"""
+    """Generate coefficients (a, b, c) ensuring complex roots (b^2 < 4ac)"""
     # Generate b first
     b = draw(st.floats(min_value=-50, max_value=50, exclude_min=True, exclude_max=True))
 
@@ -72,8 +69,8 @@ def repeated_roots_inputs(draw):
     a = draw(nonzero_coefficient)
     b = draw(real_coefficient)
 
-    # For repeated roots, discriminant must be zero: b² = 4ac
-    # So c = b²/4a
+    # For repeated roots, discriminant must be zero: b^2 = 4ac
+    # So c = b^2/4a
     c = (b**2) / (4 * a)
 
     # Convert to strings for input mocking
@@ -153,7 +150,7 @@ def error_case_inputs(draw):
         valid_b = draw(real_coefficient)
         valid_c = draw(real_coefficient)
         # String of inputs with various errors
-        return ["abc", "0", "1e500", str(valid_a), str(valid_b), str(valid_c), "n"]
+        return ["abc", "1e500", str(valid_a), str(valid_b), str(valid_c), "n"]
 
 
 @st.composite
@@ -196,7 +193,7 @@ def test_mr1_real_roots(inputs):
     # Check that we have two root lines
     assert "x1 = " in output
     assert "x2 = " in output
-    # Real roots shouldn't have 'i'
+    # Real roots shouldn't have 'j'
     assert not complex_pattern.search(output)
 
 
@@ -209,7 +206,6 @@ def test_mr2_complex_roots(inputs):
 
     # Check for complex roots
     assert complex_pattern.search(output)
-    # assert "+" in output and "-" in output
 
 
 @settings(max_examples=10)
@@ -247,22 +243,13 @@ def test_mr5_error_handling(inputs):
 
     # Check for error messages based on input type
     if "abc" in inputs:
-        assert (
-            "not allowed" in output
-            or "valid number" in output.lower()
-            or "EXCEPTION:" in output
-        )
+        assert "not allowed" in output
 
     if "1e100" in inputs or "1e200" in inputs or "1e500" in inputs:
-        assert (
-            "large" in output.lower()
-            or "small" in output.lower()
-            or "precision" in output.lower()
-            or "EXCEPTION:" in output
-        )
+        assert "large" in output
 
     # Should eventually solve an equation
-    assert "x1 = " in output or "EXCEPTION:" in output
+    assert "x1 = " in output
 
 
 @settings(max_examples=10)
@@ -274,9 +261,8 @@ def test_mr6_multiple_equations(inputs):
 
     # Should solve at least two equations (count occurrences of x1)
     assert output.count("x1 = ") == 2
-
     # Should have asked "try again" once
-    assert "try again" in output.lower() or "Would you like to try again" in output
+    assert "try again" in output
 
 
 def parse_roots(output):
@@ -287,14 +273,6 @@ def parse_roots(output):
     root_lines = re.findall(r"x[12] = (.+)", output)
 
     for line in root_lines:
-        # Normalize the line to Python's complex notation
-        line = (
-            line.replace(" ", "")
-            .replace("i", "j")  # Convert 'i' to 'j'
-            .replace("--", "+")  # Handle double negatives: "-a - -b" -> "-a+b"
-            .replace("+-", "-")  # Handle mixed signs: "+a + -b" -> "+a-b"
-        )
-
         try:
             roots.append(complex(line))
         except ValueError:
@@ -340,7 +318,7 @@ def test_mr7_coefficient_scaling(a, b, c, scale):
 def test_edge_cases():
     """Test specific edge cases that might be missed by Hypothesis"""
 
-    # Test case 1: q=0 and c=0 case (simplified equation x² = 0)
+    # Test case 1: q=0 and c=0 case (simplified equation x^2 = 0)
     inputs1 = ["1", "0", "0", "n"]
     output1 = run_main_with_inputs(inputs1)
     assert "x1 = 0" in output1
@@ -363,7 +341,7 @@ def test_nan_discriminant_branch():
     This directly tests the 'math.isnan(discriminant)' branch.
     """
     # NaN can result from operations like 0/0 or sqrt(-1)
-    # For the discriminant b²-4ac to be NaN, we can use inputs that create NaN
+    # For the discriminant b^2-4ac to be NaN, we can use inputs that create NaN
 
     # Method 1: Using "nan" string directly
     inputs1 = ["1", "nan", "1", "y", "1", "-3", "2", "n"]
