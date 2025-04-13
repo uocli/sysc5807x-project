@@ -33,10 +33,12 @@ def generate_automated_test_cases():
                         # Add the test case
                         inputs = [str(a), str(b), str(c), "n"]
 
-                        if name in ["positive", "zero"]:
-                            expected = ["Thank you"]
+                        if name == "positive":
+                            expected = ["Thank you", "x1 = ", "x2 = "]
+                        elif name == "zero":
+                            expected = ["Thank you", "x1 = "]
                         elif name == "negative":
-                            expected = ["j"]  # Complex roots should have 'j' in output
+                            expected = ["j)"]  # Complex roots should have 'j' in output
 
                         test_cases.append((inputs, expected))
 
