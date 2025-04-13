@@ -1,5 +1,8 @@
 import datetime
 import logging
+
+from freezegun import freeze_time
+
 from date_format_converter import (
     DateFormats,
     get_date_only,
@@ -21,6 +24,8 @@ from date_format_converter import (
     EditText,
     date_picker_dialog,
     time_picker_dialog,
+    prettify_date,
+    prettify_date_str,
 )
 
 """
@@ -39,6 +44,9 @@ def test_mr1_date_format_inverse_conversion():
     we should get the original date.
     """
     # Source test case
+    # Bad format
+    assert get_date_only_str("1-2-3") is None
+
     original_date = "15/03/2023"
     # Convert to timestamp (intermediate format)
     timestamp = get_date_only_str(original_date)
@@ -72,6 +80,8 @@ def test_mr3_days_between_dates_symmetry():
     The number of days between date A and date B should be the negative of
     the number of days between date B and date A.
     """
+    # Bad format
+    assert get_days_between_two_dates("1-2-3", "1-2-3", DateFormats.S_DDMMYYYY) is None
     # Source test case
     date1 = "15/03/2023"
     date2 = "20/03/2023"
@@ -89,6 +99,8 @@ def test_mr4_time_conversion_preservation():
     MR4: Time Unit Conversion Relation
     The number of hours between two dates should be 24 times the number of days.
     """
+    # Bad format
+    assert get_hours_between_two_dates("1-2-3", "1-2-3", DateFormats.S_DDMMYYYY) is None
     # Source test case - Using format without space between time and AM/PM
     date1 = "15/03/2023, 12:00PM"
     date2 = "16/03/2023, 12:00PM"
@@ -106,6 +118,10 @@ def test_mr5_minutes_hours_conversion():
     MR5: Time Unit Conversion Relation
     The number of minutes between two dates should be 60 times the number of hours.
     """
+    # Bad format
+    assert (
+        get_minutes_between_two_dates("1-2-3", "1-2-3", DateFormats.S_DDMMYYYY) is None
+    )
     # Source test case - Using format without space between time and AM/PM
     date1 = "15/03/2023, 12:00PM"
     date2 = "15/03/2023, 01:00PM"
@@ -163,6 +179,9 @@ def test_mr8_parse_any_date_consistency():
     MR8: Parse Consistency Relation
     parse_any_date should give the same result as parse_date with the correct format.
     """
+    # Bad format
+    assert parse_any_date("1-2-3") is None
+    assert parse_date("1-2-3", DateFormats.S_DDMMYYYY) is None
     # Source test case
     date_str = "15/03/2023"
 
@@ -248,6 +267,8 @@ def test_mr12_get_date_and_time_str_consistency():
     MR12: Date and Time String Conversion Consistency
     get_date_and_time_str should produce the same output as get_date_and_time for the same time.
     """
+    # Bad format
+    assert get_date_and_time_str("1-2-3") == "Invalid timestamp"
     # Create a timestamp
     dt = datetime.datetime(2023, 3, 15, 14, 30, 0).replace(tzinfo=datetime.timezone.utc)
     timestamp = int(dt.timestamp() * 1000)
@@ -455,8 +476,6 @@ def test_mr20_prettify_date_consistency():
     MR20: Prettify Date Behavior
     prettify_date should format dates consistently based on whether they are today or not.
     """
-    from date_format_converter import prettify_date, prettify_date_str
-
     # Create a timestamp for a date that is not today
     past_date = datetime.datetime.now() - datetime.timedelta(days=10)
     past_timestamp = int(past_date.timestamp() * 1000)
@@ -467,3 +486,18 @@ def test_mr20_prettify_date_consistency():
 
     # Metamorphic relation: Both prettify methods should produce the same result
     assert pretty1 == pretty2
+
+
+@freeze_time("2023-03-15")
+def test_mr21_prettify_date_today():
+    """
+    MR21: Prettify Date Behavior for Today
+    """
+    # Prettify using both methods
+    now = datetime.datetime(2023, 3, 15)
+    now_timestamp = int(now.timestamp() * 1000)
+    pretty_today = prettify_date(now_timestamp)
+    pretty_today_str = prettify_date_str(str(now_timestamp))
+
+    assert len(pretty_today) == 8  # 12:00 AM
+    assert pretty_today == pretty_today_str
