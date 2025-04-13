@@ -26,9 +26,6 @@ def generate_automated_test_cases():
         # Try different coefficient combinations
         expected = []
         for a in a_values:
-            if abs(a) < 1e-10:  # Skip if a is effectively zero
-                continue
-
             for b in b_values:
                 for c in c_values:
                     # Check if this combination satisfies the discriminant condition
@@ -64,7 +61,7 @@ def generate_automated_test_cases():
         ),
         # Too large or too small values
         (
-            ["1.0e20", "1", "-3", "2", "n"],
+            ["1.0e20", "-1.0e20", "1", "-3", "2", "n"],
             ["x1 = 2", "x2 = 1", "too large"],
         ),
         # nan
