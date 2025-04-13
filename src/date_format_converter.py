@@ -105,7 +105,9 @@ def get_date_only(timestamp: int) -> str:
     """
     Formats a timestamp into a date string in "dd/MM/yyyy" format.
     """
-    return datetime.fromtimestamp(timestamp / 1000).strftime("%d/%m/%Y")
+    return datetime.fromtimestamp(timestamp / 1000, tz=timezone.utc).strftime(
+        "%d/%m/%Y"
+    )
 
 
 def get_date_and_time(timestamp: int) -> str:
@@ -113,7 +115,7 @@ def get_date_and_time(timestamp: int) -> str:
     Formats a timestamp into a date and time string in "dd/MM/yyyy, hh:mm a" format.
     """
     dt = datetime.fromtimestamp(timestamp / 1000, tz=timezone.utc)
-    return dt.strftime("%d/%m/%Y, %I:%M %p")
+    return dt.strftime("%d/%m/%Y, %I:%M%p")
 
 
 def get_date_and_time_str(time: str) -> str:
@@ -127,7 +129,7 @@ def get_date_and_time_str(time: str) -> str:
         # Convert the timestamp to a datetime object
         date = datetime.fromtimestamp(time_long / 1000, tz=timezone.utc)  # TODO: Faulty
         # Format the date and time
-        return date.strftime("%d/%m/%Y, %I:%M %p")  # dd/MM/yyyy, hh:mm a
+        return date.strftime("%d/%m/%Y, %I:%M%p")  # dd/MM/yyyy, hh:mm a
     except ValueError:
         # Handle invalid input (e.g., non-numeric string)
         return "Invalid timestamp"
@@ -137,9 +139,7 @@ def get_time_only(timestamp: int) -> str:
     """
     Formats a timestamp into a time string in "hh:mm a" format.
     """
-    return datetime.fromtimestamp(timestamp / 1000, tz=timezone.utc).strftime(
-        "%I:%M %p"
-    )
+    return datetime.fromtimestamp(timestamp / 1000, tz=timezone.utc).strftime("%I:%M%p")
 
 
 def get_today_with_time() -> str:
