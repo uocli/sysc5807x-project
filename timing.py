@@ -50,11 +50,8 @@ def run_tests_with_timing(test_module, num_runs=10):
     # Calculate statistics
     return {
         "total_runs": num_runs,
-        "min_time": min(execution_times),
-        "max_time": max(execution_times),
-        "mean_time": statistics.mean(execution_times),
-        "median_time": statistics.median(execution_times),
-        "stdev_time": statistics.stdev(execution_times) if num_runs > 1 else 0,
+        "mean": statistics.mean(execution_times),
+        "std_dev": statistics.stdev(execution_times) if num_runs > 1 else 0,
     }
 
 
