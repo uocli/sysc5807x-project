@@ -32,8 +32,14 @@ def generate_main_test_cases():
     )
     # Massive coefficients
     yield (
-        ["1e200", "1e200", "1e200", "1", "0", "0", "n"],  # Invalid -> valid
-        ["too large", "x1 = 0"],
+        [
+            "1e100",
+            "1000000000000000",
+            "2000000000000000",
+            "1000000000000000",
+            "n",
+        ],  # Invalid -> valid
+        ["too large", "x1 = -1"],
     )
     # Continue after precision error
     yield (
