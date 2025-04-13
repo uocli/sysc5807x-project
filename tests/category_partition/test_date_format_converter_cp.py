@@ -31,8 +31,6 @@ from date_format_converter import (
 
 
 class TestParseDateTime:
-    """Category: Valid date inputs"""
-
     @pytest.mark.parametrize(
         "date_str, fmt",
         [
@@ -74,29 +72,13 @@ class TestParseDateTime:
     def test_get_today(self):
         assert get_today() == "15/07/2023"
 
-    @pytest.mark.parametrize(
-        "hour,minute,expected",
-        [
-            (0, 0, "12:00 AM"),  # Midnight
-            (12, 0, "12:00 PM"),  # Noon
-            (23, 59, "11:59 PM"),  # End of day
-        ],
-    )
-    def test_get_time_only(self, hour, minute, expected):
-        ts = int(
-            datetime(2023, 7, 15, hour, minute, tzinfo=timezone.utc).timestamp() * 1000
-        )
-        assert get_time_only(ts) == expected
+    @freeze_time("2023-07-15")
+    def test_get_tomorrow(self):
+        assert get_tomorrow() == "16/07/2023"
 
-    @pytest.mark.parametrize(
-        "date_str,expected",
-        [
-            ("1689379200000", "15/07/2023, 12:00 AM"),  # Valid timestamp
-            ("invalid", "Invalid timestamp"),  # Invalid input
-        ],
-    )
-    def test_get_date_and_time_str(self, date_str, expected):
-        assert get_date_and_time_str(date_str) == expected
+    @freeze_time("2023-12-31")
+    def test_year_end(self):
+        assert get_tomorrow() == "01/01/2024"
 
     @pytest.mark.parametrize(
         "timestamp,expected",
@@ -107,6 +89,16 @@ class TestParseDateTime:
     )
     def test_get_date_and_time(self, timestamp, expected):
         assert get_date_and_time(timestamp) == expected
+
+    @pytest.mark.parametrize(
+        "date_str,expected",
+        [
+            ("1689379200000", "15/07/2023, 12:00 AM"),  # Valid timestamp
+            ("invalid", "Invalid timestamp"),  # Invalid input
+        ],
+    )
+    def test_get_date_and_time_str(self, date_str, expected):
+        assert get_date_and_time_str(date_str) == expected
 
     @pytest.mark.parametrize(
         "days,expected",
@@ -132,6 +124,20 @@ class TestParseDateTime:
         assert result == expected if expected else result is None
 
     @pytest.mark.parametrize(
+        "hour,minute,expected",
+        [
+            (0, 0, "12:00 AM"),  # Midnight
+            (12, 0, "12:00 PM"),  # Noon
+            (23, 59, "11:59 PM"),  # End of day
+        ],
+    )
+    def test_get_time_only(self, hour, minute, expected):
+        ts = int(
+            datetime(2023, 7, 15, hour, minute, tzinfo=timezone.utc).timestamp() * 1000
+        )
+        assert get_time_only(ts) == expected
+
+    @pytest.mark.parametrize(
         "date_str,expected",
         [
             ("15-Jul-23", 1437609600000),
@@ -155,18 +161,8 @@ class TestParseDateTime:
         result = get_desired_format(fmt)
         assert re.match(expected_pattern, result)
 
-    @freeze_time("2023-07-15")
-    def test_get_tomorrow(self):
-        assert get_tomorrow() == "16/07/2023"
-
-    @freeze_time("2023-12-31")
-    def test_year_end(self):
-        assert get_tomorrow() == "01/01/2024"
-
 
 class TestUIPicker:
-    """Category: Date picker interactions"""
-
     @freeze_time("2023-07-15 04:30:45")
     @pytest.mark.parametrize(
         "day, month, with_time, expected",
@@ -197,15 +193,10 @@ class TestUIPicker:
         assert edit_text.get_text() == expected
 
 
-# ___________________________________________________
-
-
 # --------------------------------------------------
 # Date Formatting Utilities
 # --------------------------------------------------
 class TestDateFormatting:
-    """Tests for date prettification and basic formatting"""
-
     @freeze_time("2023-07-15 04:30:45")
     @pytest.mark.parametrize(
         "timestamp,expected_pattern",
@@ -247,8 +238,6 @@ class TestDateFormatting:
 # Date Calculations
 # --------------------------------------------------
 class TestDateCalculations:
-    """Tests for date difference calculations"""
-
     @pytest.mark.parametrize(
         "date1,date2,fmt,expected",
         [
@@ -306,9 +295,6 @@ class TestDateCalculations:
         result = get_days_between_two_dates(date1, date2, fmt)
         assert result == expected
 
-    # --------------------------
-    # Partition 2: get_hours_between_two_dates
-    # --------------------------
     @pytest.mark.parametrize(
         "date1,date2,fmt,expected",
         [
