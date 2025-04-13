@@ -83,8 +83,8 @@ class TestParseDateTime:
     @pytest.mark.parametrize(
         "timestamp,expected",
         [
-            (1689415200000, "15/07/2023, 10:00 AM"),  # 2023-07-15 14:00
-            (1672531200000, "01/01/2023, 12:00 AM"),  # New Year
+            (1689415200000, "15/07/2023, 10:00AM"),  # 2023-07-15 14:00
+            (1672531200000, "01/01/2023, 12:00AM"),  # New Year
         ],
     )
     def test_get_date_and_time(self, timestamp, expected):
@@ -93,7 +93,7 @@ class TestParseDateTime:
     @pytest.mark.parametrize(
         "date_str,expected",
         [
-            ("1689379200000", "15/07/2023, 12:00 AM"),  # Valid timestamp
+            ("1689379200000", "15/07/2023, 12:00AM"),  # Valid timestamp
             ("invalid", "Invalid timestamp"),  # Invalid input
         ],
     )
@@ -126,9 +126,9 @@ class TestParseDateTime:
     @pytest.mark.parametrize(
         "hour,minute,expected",
         [
-            (0, 0, "12:00 AM"),  # Midnight
-            (12, 0, "12:00 PM"),  # Noon
-            (23, 59, "11:59 PM"),  # End of day
+            (0, 0, "12:00AM"),  # Midnight
+            (12, 0, "12:00PM"),  # Noon
+            (23, 59, "11:59PM"),  # End of day
         ],
     )
     def test_get_time_only(self, hour, minute, expected):
