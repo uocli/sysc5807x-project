@@ -161,42 +161,6 @@ class TestParseDateTime:
         result = get_desired_format(fmt)
         assert re.match(expected_pattern, result)
 
-
-class TestUIPicker:
-    @freeze_time("2023-07-15 04:30:45")
-    @pytest.mark.parametrize(
-        "day, month, with_time, expected",
-        [
-            (31, 1, False, "31-01-2023"),  # January
-            (28, 2, False, "28-02-2023"),  # Non-leap year
-            (30, 4, True, "30-04-2023, 04:30 AM"),  # April
-        ],
-    )
-    def test_date_selection(self, day, month, with_time, expected):
-        edit_text = EditText()
-        dialog = date_picker_dialog(
-            Context(), edit_text, with_time, DateFormats.D_DDMMYYYY
-        )
-        dialog.on_date_set_listener(2023, month, day)
-        assert edit_text.get_text() == expected
-
-    @pytest.mark.parametrize(
-        "hour,minute,expected",
-        [(14, 30, "02:30 PM"), (23, 59, "11:59 PM"), (0, 0, "12:00 AM")],
-    )
-    def test_time_selection(self, hour, minute, expected):
-        edit_text = EditText()
-        dialog = time_picker_dialog(
-            context=Context(), date_edit_text=edit_text, with_append=False
-        )
-        dialog.on_time_set_listener(hour, minute)
-        assert edit_text.get_text() == expected
-
-
-# --------------------------------------------------
-# Date Formatting Utilities
-# --------------------------------------------------
-class TestDateFormatting:
     @freeze_time("2023-07-15 04:30:45")
     @pytest.mark.parametrize(
         "timestamp,expected_pattern",
@@ -233,11 +197,6 @@ class TestDateFormatting:
     def test_prettify_date(self, timestamp, expected):
         assert prettify_date(timestamp) == expected
 
-
-# --------------------------------------------------
-# Date Calculations
-# --------------------------------------------------
-class TestDateCalculations:
     @pytest.mark.parametrize(
         "date1,date2,fmt,expected",
         [
@@ -352,3 +311,34 @@ class TestDateCalculations:
     def test_boundary_conditions(self, date1, date2, fmt):
         result = get_days_between_two_dates(date1, date2, fmt)
         assert result is None or isinstance(result, int)
+
+
+class TestUIPicker:
+    @freeze_time("2023-07-15 04:30:45")
+    @pytest.mark.parametrize(
+        "day, month, with_time, expected",
+        [
+            (31, 1, False, "31-01-2023"),  # January
+            (28, 2, False, "28-02-2023"),  # Non-leap year
+            (30, 4, True, "30-04-2023, 04:30 AM"),  # April
+        ],
+    )
+    def test_date_selection(self, day, month, with_time, expected):
+        edit_text = EditText()
+        dialog = date_picker_dialog(
+            Context(), edit_text, with_time, DateFormats.D_DDMMYYYY
+        )
+        dialog.on_date_set_listener(2023, month, day)
+        assert edit_text.get_text() == expected
+
+    @pytest.mark.parametrize(
+        "hour,minute,expected",
+        [(14, 30, "02:30 PM"), (23, 59, "11:59 PM"), (0, 0, "12:00 AM")],
+    )
+    def test_time_selection(self, hour, minute, expected):
+        edit_text = EditText()
+        dialog = time_picker_dialog(
+            context=Context(), date_edit_text=edit_text, with_append=False
+        )
+        dialog.on_time_set_listener(hour, minute)
+        assert edit_text.get_text() == expected
