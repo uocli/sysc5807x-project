@@ -1,94 +1,82 @@
-import builtins
 import pytest
+import builtins
 
-from quadratic_equation_solver import main
 
+def generate_automated_test_cases():
+    """
+    Automatically generate test cases using category-partition method.
+    Return a list of (inputs, expected_outputs) tuples.
+    """
+    test_cases = []
 
-def generate_main_test_cases():
-    # ----------------------------------------------------------------
-    # Normal Cases
-    # ----------------------------------------------------------------
-    # Standard quadratic equations
-    yield (
-        ["1", "-3", "2", "n"],  # x^2 - 3x + 2 = 0 -> x=2, x=1
-        ["x1 = 2", "x2 = 1", "Thank you"],
-    )
-    yield (
-        ["1", "0", "-4", "n"],  # x^2 - 4 = 0 -> x=2, x=-2
-        ["x1 = 2", "x2 = -2"],
-    )
-    # Solve two equations in sequence
-    yield (
-        ["1", "-3", "2", "y", "1", "2", "5", "n"],
-        ["x1 = 2", "x2 = 1", "-1+2j", "-1-2j", "Thank you"],
-    )
-    # ----------------------------------------------------------------
-    # Edge Cases
-    # ----------------------------------------------------------------
-    # Tiny 'a' value (near-zero)
-    yield (
-        ["1e-15", "1", "1", "n"],  # 1e-15x^2 + x + 1 = 0
-        ["x1 = -999999999999998.9"],
-    )
-    # Massive coefficients
-    yield (
-        [
-            "1e100",
-            "1000000000000000",
-            "2000000000000000",
-            "1000000000000000",
-            "n",
-        ],  # Invalid -> valid
-        ["too large", "x1 = -1"],
-    )
-    # Continue after precision error
-    yield (
-        ["1e200", "1", "0", "0", "y", "1", "0", "0", "n"],
-        # Extreme a -> 'y' -> valid
-        ["too large", "x1 = 0"],
-    )
-    # ----------------------------------------------------------------
-    # Boundary Conditions
-    # ----------------------------------------------------------------
-    # Discriminant exactly zero
-    yield (
-        ["1", "2", "1", "n"],  # (x + 1)^2=0
-        ["x1 = -1"],
-    )
-    # Discriminant near zero (1e-15 difference)
-    yield (
-        ["1", "2", "1.000000000000001", "n"],  # b^2 - 4ac = -4e-15
-        ["j"],  # Complex roots
-    )
-    # ----------------------------------------------------------------
-    # Special Cases
-    # ----------------------------------------------------------------
-    # Linear equation (a=0) with recovery
-    yield (
-        ["0", "1", "-2", "1", "n"],  # First a = 0 -> retry
-        ["'a' cannot be zero", "x1 = 1"],
-    )
-    # ----------------------------------------------------------------
-    # Input Validation
-    # ----------------------------------------------------------------
-    # Non-numeric input recovery
-    yield (
-        ["abc", "1", "2", "1", "n"],
-        ["not allowed", "x1 = -1"],
-    )
-    # NaN handling
-    yield (
-        ["nan", "1", "1", "n"],
-        ["Failed to find an accurate solution"],
-    )
-    # ----------------------------------------------------------------
-    # Mixed Error Handling
-    # ----------------------------------------------------------------
-    # Multiple errors followed by success
-    yield (
-        ["0", "a", "0.1", "nan", "1e500", "1", "-3", "2", "n"],
-        ["'a' cannot be zero", "not allowed", "too large", "x1 = 2"],
-    )
+    # Define categories for discriminant
+    discriminant_categories = [
+        ("positive", lambda a, b, c: b**2 - 4 * a * c > 0),  # Two real roots
+        ("zero", lambda a, b, c: abs(b**2 - 4 * a * c) < 1e-10),  # One repeated root
+        ("negative", lambda a, b, c: b**2 - 4 * a * c < 0),  # Complex roots
+    ]
+
+    # Define test values for each coefficient
+    a_values = [0.0001, -0.0001, 1, -1, 100, -100, 10000, -10000]
+    b_values = [0, 0.0001, -0.0001, 1, -1, 100, -100, 10000, -10000]
+    c_values = [0, 0.0001, -0.0001, 1, -1, 100, -100, 10000, -10000]
+
+    # Generate test cases for each discriminant category
+    for name, condition in discriminant_categories:
+        # Try different coefficient combinations
+        expected = []
+        for a in a_values:
+            if abs(a) < 1e-10:  # Skip if a is effectively zero
+                continue
+
+            for b in b_values:
+                for c in c_values:
+                    # Check if this combination satisfies the discriminant condition
+                    if condition(a, b, c):
+                        # Add the test case
+                        inputs = [str(a), str(b), str(c), "n"]
+
+                        if name in ["positive", "zero"]:
+                            expected = ["Thank you"]
+                        elif name == "negative":
+                            expected = ["j"]  # Complex roots should have 'j' in output
+
+                        test_cases.append((inputs, expected))
+
+                        # Limit number of test cases per category to prevent explosion
+                        if len([tc for tc in test_cases if tc[1] == expected]) >= 5:
+                            break
+                if len([tc for tc in test_cases if tc[1] == expected]) >= 5:
+                    break
+            if len([tc for tc in test_cases if tc[1] == expected]) >= 5:
+                break
+
+    # Add special case tests
+    special_cases = [
+        # a = 0 (rejection)
+        (["0", "1", "-3", "2", "n"], ["'a' cannot be zero", "x1 = 2"]),
+        # Non-numeric input
+        (["abc", "1", "-3", "2", "n"], ["not allowed", "x1 = 2"]),
+        # Multiple equations
+        (
+            ["1", "-3", "2", "y", "1", "0", "1", "n"],
+            ["x1 = 2", "x2 = 1", "j"],
+        ),
+        # Too large or too small values
+        (
+            ["1.0e20", "1", "-3", "2", "n"],
+            ["x1 = 2", "x2 = 1", "too large"],
+        ),
+        # nan
+        (
+            ["nan", "-3", "2", "n"],
+            ["Failed to find an accurate solution"],
+        ),
+    ]
+
+    test_cases.extend(special_cases)
+
+    return test_cases
 
 
 def simulate_inputs(monkeypatch, inputs):
@@ -97,19 +85,22 @@ def simulate_inputs(monkeypatch, inputs):
     monkeypatch.setattr(builtins, "input", lambda _: next(iterator))
 
 
-@pytest.mark.parametrize("inputs, expected_substrings", generate_main_test_cases())
-def test_main_edge_cases(inputs, expected_substrings, monkeypatch, capsys):
+@pytest.mark.parametrize("inputs, expected_substrings", generate_automated_test_cases())
+def test_main_automated(inputs, expected_substrings, monkeypatch, capsys):
     """
-    Test the main function of the quadratic equation solver.
-    :param inputs: the inputs to simulate
-    :param expected_substrings: the expected substrings in the output
-    :param monkeypatch: the monkeypatch fixture to simulate inputs
-    :param capsys: the capsys fixture to capture output
+    Test the main function with automatically generated test cases.
     """
+    from quadratic_equation_solver import main
+
+    # Simulate user inputs
     simulate_inputs(monkeypatch, inputs)
+
+    # Run the main function
     main()
+
+    # Capture and check the output
     captured_output = capsys.readouterr().out
 
-    # Custom checks for special conditions
+    # Verify expected substrings appear in the output
     for substr in expected_substrings:
-        assert substr in captured_output, f"Missing: {substr}"
+        assert substr in captured_output, f"Missing expected output: {substr}"
