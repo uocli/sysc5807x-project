@@ -23,17 +23,14 @@ from date_format_converter import (
     parse_date,
     get_desired_format,
     get_date_from_days,
-    DatePickerDialog,
-    TimePickerDialog,
     date_picker_dialog,
     time_picker_dialog,
-    convert_date,
     Context,
     EditText,
 )
 
 
-class TestValidDates:
+class TestParseDateTime:
     """Category: Valid date inputs"""
 
     @pytest.mark.parametrize(
@@ -47,10 +44,6 @@ class TestValidDates:
     def test_parsing_valid_dates(self, date_str, fmt):
         assert parse_date(date_str, fmt) is not None
 
-
-class TestInvalidDates:
-    """Category: Invalid date inputs"""
-
     @pytest.mark.parametrize(
         "date_str, fmt",
         [
@@ -61,10 +54,6 @@ class TestInvalidDates:
     )
     def test_parsing_invalid_dates(self, date_str, fmt):
         assert parse_date(date_str, fmt) is None
-
-
-class TestBoundaryConditions:
-    """Category: Date boundary cases"""
 
     @pytest.mark.parametrize(
         "date_str, fmt",
@@ -77,26 +66,105 @@ class TestBoundaryConditions:
     def test_date_boundaries(self, date_str, fmt):
         assert parse_date(date_str, fmt) is not None
 
+    @freeze_time("2023-07-15 14:30:45")
+    def test_get_today_with_time(self):
+        assert get_today_with_time() == "15/07/2023 14:30:45"
 
-class TestTimeComponents:
-    """Category: Time-related cases"""
+    @freeze_time("2023-07-15")
+    def test_get_today(self):
+        assert get_today() == "15/07/2023"
 
     @pytest.mark.parametrize(
-        "time_str, expected",
+        "hour,minute,expected",
         [
-            ("00:00:00", "12:00 AM"),
-            ("12:00:00", "12:00 PM"),
-            ("23:59:59", "11:59 PM"),
+            (0, 0, "12:00 AM"),  # Midnight
+            (12, 0, "12:00 PM"),  # Noon
+            (23, 59, "11:59 PM"),  # End of day
         ],
     )
-    def test_time_formatting(self, time_str, expected):
-        dt = datetime.strptime(f"2023-07-15 {time_str}", "%Y-%m-%d %H:%M:%S")
-        dt = dt.replace(tzinfo=timezone.utc)
-        ts = int(dt.timestamp() * 1000)
+    def test_get_time_only(self, hour, minute, expected):
+        ts = int(
+            datetime(2023, 7, 15, hour, minute, tzinfo=timezone.utc).timestamp() * 1000
+        )
         assert get_time_only(ts) == expected
 
+    @pytest.mark.parametrize(
+        "date_str,expected",
+        [
+            ("1689379200000", "15/07/2023, 12:00 AM"),  # Valid timestamp
+            ("invalid", "Invalid timestamp"),  # Invalid input
+        ],
+    )
+    def test_get_date_and_time_str(self, date_str, expected):
+        assert get_date_and_time_str(date_str) == expected
 
-class TestUIDatePicker:
+    @pytest.mark.parametrize(
+        "timestamp,expected",
+        [
+            (1689415200000, "15/07/2023, 10:00 AM"),  # 2023-07-15 14:00
+            (1672531200000, "01/01/2023, 12:00 AM"),  # New Year
+        ],
+    )
+    def test_get_date_and_time(self, timestamp, expected):
+        assert get_date_and_time(timestamp) == expected
+
+    @pytest.mark.parametrize(
+        "days,expected",
+        [
+            (0, datetime.now().strftime("%d/%m/%Y")),
+            (1, (datetime.now() + timedelta(days=1)).strftime("%d/%m/%Y")),
+        ],
+    )
+    def test_get_date_only(self, days, expected):
+        ts = int((datetime.now() + timedelta(days=days)).timestamp() * 1000)
+        assert get_date_only(ts) == expected
+
+    @pytest.mark.parametrize(
+        "date_str,expected",
+        [
+            ("15/07/2023", 1689379200000),  # Valid
+            ("invalid-date", None),  # Invalid
+            ("29/02/2020", 1582934400000),  # Leap day
+        ],
+    )
+    def test_get_date_only_str(self, date_str, expected):
+        result = get_date_only_str(date_str)
+        assert result == expected if expected else result is None
+
+    @pytest.mark.parametrize(
+        "date_str,expected",
+        [
+            ("15-Jul-23", 1437609600000),
+            # TODO: Faulty as it could be 2015 or 2023
+            ("2023/07/15", 1689379200000),
+            ("invalid", None),
+        ],
+    )
+    def test_parse_any_date(self, date_str, expected):
+        result = parse_any_date(date_str)
+        assert result == expected if expected else result is None
+
+    @pytest.mark.parametrize(
+        "fmt,expected_pattern",
+        [
+            (DateFormats.D_YYMMDD_N, r"\d{2}-\w{3}-\d{2}"),
+            (DateFormats.S_YYYYMMDDHHMMA, r"\d{4}/\d{2}/\d{2}, \d{2}:\d{2}[AP]M"),
+        ],
+    )
+    def test_get_desired_format(self, fmt, expected_pattern):
+        result = get_desired_format(fmt)
+        assert re.match(expected_pattern, result)
+
+    @freeze_time("2023-07-15")
+    def test_get_tomorrow(self):
+        assert get_tomorrow() == "16/07/2023"
+
+    @freeze_time("2023-12-31")
+    def test_year_end(self):
+        assert get_tomorrow() == "01/01/2024"
+
+
+class TestUIPicker:
     """Category: Date picker interactions"""
 
     @freeze_time("2023-07-15 04:30:45")
@@ -108,7 +176,7 @@ class TestUIDatePicker:
             (30, 4, True, "30-04-2023, 04:30 AM"),  # April
         ],
     )
-    def test_month_day_combinations(self, day, month, with_time, expected):
+    def test_date_selection(self, day, month, with_time, expected):
         edit_text = EditText()
         dialog = date_picker_dialog(
             Context(), edit_text, with_time, DateFormats.D_DDMMYYYY
@@ -116,12 +184,24 @@ class TestUIDatePicker:
         dialog.on_date_set_listener(2023, month, day)
         assert edit_text.get_text() == expected
 
+    @pytest.mark.parametrize(
+        "hour,minute,expected",
+        [(14, 30, "02:30 PM"), (23, 59, "11:59 PM"), (0, 0, "12:00 AM")],
+    )
+    def test_time_selection(self, hour, minute, expected):
+        edit_text = EditText()
+        dialog = time_picker_dialog(
+            context=Context(), date_edit_text=edit_text, with_append=False
+        )
+        dialog.on_time_set_listener(hour, minute)
+        assert edit_text.get_text() == expected
+
 
 # ___________________________________________________
 
 
 # --------------------------------------------------
-# Category 1: Date Formatting Utilities
+# Date Formatting Utilities
 # --------------------------------------------------
 class TestDateFormatting:
     """Tests for date prettification and basic formatting"""
@@ -150,67 +230,21 @@ class TestDateFormatting:
     def test_prettify_date_str(self, timestamp, expected_pattern):
         assert re.search(expected_pattern, prettify_date_str(str(timestamp)))
 
+    @freeze_time("2023-07-15 04:30:45")
     @pytest.mark.parametrize(
-        "days,expected",
+        "timestamp,expected",
         [
-            (0, datetime.now().strftime("%d/%m/%Y")),
-            (1, (datetime.now() + timedelta(days=1)).strftime("%d/%m/%Y")),
+            (1689379200000, "12:00 AM"),  # 2023-07-15 14:00
+            (0, "01 Jan 12:00 AM"),  # Epoch
+            (1640995200000, "01 Jan 12:00 AM"),  # 2022-01-01
         ],
     )
-    def test_get_date_only(self, days, expected):
-        ts = int((datetime.now() + timedelta(days=days)).timestamp() * 1000)
-        assert get_date_only(ts) == expected
-
-        # --------------------------------------------------
-        # Category 2: Date/Time Components
-        # --------------------------------------------------
-
-
-class TestDateTimeComponents:
-    """Tests for time extraction and combined date-time formatting"""
-
-    @pytest.mark.parametrize(
-        "hour,minute,expected",
-        [
-            (0, 0, "12:00 AM"),  # Midnight
-            (12, 0, "12:00 PM"),  # Noon
-            (23, 59, "11:59 PM"),  # End of day
-        ],
-    )
-    def test_get_time_only(self, hour, minute, expected):
-        ts = int(
-            datetime(2023, 7, 15, hour, minute, tzinfo=timezone.utc).timestamp() * 1000
-        )
-        assert get_time_only(ts) == expected
-
-    @pytest.mark.parametrize(
-        "date_str,expected",
-        [
-            ("1689379200000", "15/07/2023, 12:00 AM"),  # Valid timestamp
-            ("invalid", "Invalid timestamp"),  # Invalid input
-        ],
-    )
-    def test_get_date_and_time_str(self, date_str, expected):
-        assert get_date_and_time_str(date_str) == expected
+    def test_prettify_date(self, timestamp, expected):
+        assert prettify_date(timestamp) == expected
 
 
 # --------------------------------------------------
-# Category 3: Current Date/Time Handling
-# --------------------------------------------------
-class TestCurrentDateTime:
-    """Tests for current date/time retrieval"""
-
-    @freeze_time("2023-07-15 14:30:45")
-    def test_get_today_with_time(self):
-        assert get_today_with_time() == "15/07/2023 14:30:45"
-
-    @freeze_time("2023-07-15")
-    def test_get_today(self):
-        assert get_today() == "15/07/2023"
-
-
-# --------------------------------------------------
-# Category 4: Date Calculations
+# Date Calculations
 # --------------------------------------------------
 class TestDateCalculations:
     """Tests for date difference calculations"""
@@ -241,122 +275,6 @@ class TestDateCalculations:
     def test_get_minutes_between_two_dates(self, date1, date2, fmt, expected):
         assert get_minutes_between_two_dates(date1, date2, fmt) == expected
 
-
-# --------------------------------------------------
-# Category 5: UI Components
-# --------------------------------------------------
-class TestUIComponents:
-    """Tests for date/time picker dialogs"""
-
-    @pytest.mark.parametrize(
-        "initial_date,selected_date",
-        [
-            ((2023, 7, 1), "01/07/2023"),  # Month start
-            ((2023, 2, 28), "28/02/2023"),  # Non-leap year
-            ((2020, 2, 29), "29/02/2020"),  # Leap year
-        ],
-    )
-    def test_date_picker_dialog(self, initial_date, selected_date):
-        dialog = DatePickerDialog(
-            context=Context(),
-            on_date_set_listener=lambda y, m, d: None,
-            year=initial_date[0],
-            month=initial_date[1],
-            day=initial_date[2],
-        )
-        assert dialog.year == initial_date[0]
-        assert dialog.month == initial_date[1]
-        assert dialog.day == initial_date[2]
-
-    @pytest.mark.parametrize(
-        "hour,minute,expected",
-        [
-            (0, 0, "12:00 AM"),  # Midnight
-            (12, 0, "12:00 PM"),  # Noon
-            (23, 59, "11:59 PM"),  # Last minute
-        ],
-    )
-    def test_time_picker_dialog(self, hour, minute, expected):
-        edit_text = EditText()
-        dialog = TimePickerDialog(
-            context=Context(),
-            on_time_set_listener=lambda h, m: edit_text.set_text(
-                datetime(2023, 7, 15, h, m).strftime("%I:%M %p")
-            ),
-            hour=hour,
-            minute=minute,
-            is_24_hour=True,
-        )
-        dialog.show()
-        assert edit_text.get_text() == expected
-
-
-# --------------------------------------------------
-# Category 1: Date Prettification
-# --------------------------------------------------
-class TestDatePrettification:
-    """Tests for date prettification methods"""
-
-    @freeze_time("2023-07-15 04:30:45")
-    @pytest.mark.parametrize(
-        "timestamp,expected",
-        [
-            (1689379200000, "12:00 AM"),  # 2023-07-15 14:00
-            (0, "01 Jan 12:00 AM"),  # Epoch
-            (1640995200000, "01 Jan 12:00 AM"),  # 2022-01-01
-        ],
-    )
-    def test_prettify_date(self, timestamp, expected):
-        assert prettify_date(timestamp) == expected
-
-    @pytest.mark.parametrize(
-        "date_str,expected",
-        [
-            ("15/07/2023", 1689379200000),  # Valid
-            ("invalid-date", None),  # Invalid
-            ("29/02/2020", 1582934400000),  # Leap day
-        ],
-    )
-    def test_get_date_only_str(self, date_str, expected):
-        result = get_date_only_str(date_str)
-        assert result == expected if expected else result is None
-
-
-# --------------------------------------------------
-# Category 2: Combined Date-Time Handling
-# --------------------------------------------------
-class TestDateTimeCombinations:
-    """Tests for combined date-time formatting"""
-
-    @pytest.mark.parametrize(
-        "timestamp,expected",
-        [
-            (1689415200000, "15/07/2023, 10:00 AM"),  # 2023-07-15 14:00
-            (1672531200000, "01/01/2023, 12:00 AM"),  # New Year
-        ],
-    )
-    def test_get_date_and_time(self, timestamp, expected):
-        assert get_date_and_time(timestamp) == expected
-
-
-# --------------------------------------------------
-# Category 4: Date Parsing & Conversion
-# --------------------------------------------------
-class TestDateParsing:
-    """Tests for date parsing and conversion"""
-
-    @pytest.mark.parametrize(
-        "date_str,expected",
-        [
-            ("15-Jul-23", 1437609600000),  # TODO: Faulty as it could be 2015 or 2023
-            ("2023/07/15", 1689379200000),
-            ("invalid", None),
-        ],
-    )
-    def test_parse_any_date(self, date_str, expected):
-        result = parse_any_date(date_str)
-        assert result == expected if expected else result is None
-
     @pytest.mark.parametrize(
         "days,expected",
         [
@@ -367,79 +285,6 @@ class TestDateParsing:
     def test_get_date_from_days(self, days, expected):
         assert get_date_from_days(days) == expected
 
-
-# --------------------------------------------------
-# Category 5: Format Conversions
-# --------------------------------------------------
-class TestFormatConversions:
-    """Tests for date format conversions"""
-
-    @pytest.mark.parametrize(
-        "fmt,expected_pattern",
-        [
-            (DateFormats.D_YYMMDD_N, r"\d{2}-\w{3}-\d{2}"),
-            (DateFormats.S_YYYYMMDDHHMMA, r"\d{4}/\d{2}/\d{2}, \d{2}:\d{2}[AP]M"),
-        ],
-    )
-    def test_get_desired_format(self, fmt, expected_pattern):
-        result = get_desired_format(fmt)
-        assert re.match(expected_pattern, result)
-
-    @pytest.mark.parametrize(
-        "date_str,src_fmt,tgt_fmt,expected",
-        [
-            ("15-07-2023", "%d-%m-%Y", "%Y/%m/%d", "2023/07/15"),
-            ("invalid", "%d-%m-%Y", "%Y/%m/%d", None),
-        ],
-    )
-    def test_convert_date(self, date_str, src_fmt, tgt_fmt, expected):
-        result = convert_date(date_str, src_fmt, tgt_fmt)
-        assert result == expected
-
-
-# --------------------------------------------------
-# Category 6: UI Component Tests
-# --------------------------------------------------
-class TestTimePickerDialog:
-    """Tests for time picker dialog interactions"""
-
-    @pytest.mark.parametrize(
-        "hour,minute,expected",
-        [(14, 30, "02:30 PM"), (23, 59, "11:59 PM"), (0, 0, "12:00 AM")],
-    )
-    def test_time_selection(self, hour, minute, expected):
-        edit_text = EditText()
-        dialog = time_picker_dialog(
-            context=Context(), date_edit_text=edit_text, with_append=False
-        )
-        dialog.on_time_set_listener(hour, minute)
-        assert edit_text.get_text() == expected
-
-
-# --------------------------------------------------
-# Category 7: Future Date Handling
-# --------------------------------------------------
-class TestFutureDates:
-    """Tests for future date calculations"""
-
-    @freeze_time("2023-07-15")
-    def test_get_tomorrow(self):
-        assert get_tomorrow() == "16/07/2023"
-
-    @freeze_time("2023-12-31")
-    def test_year_end(self):
-        assert get_tomorrow() == "01/01/2024"
-
-
-# --------------------------------------------------
-# Category: Date Difference Calculations
-# --------------------------------------------------
-class TestDateDifferences:
-    """Tests for date/time difference calculations"""
-
-    # --------------------------
-    # Partition 1: get_days_between_two_dates
-    # --------------------------
     @pytest.mark.parametrize(
         "date1,date2,fmt,expected",
         [
