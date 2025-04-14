@@ -60,7 +60,7 @@ if __name__ == "__main__":
     test_modules = [
         "tests/category_partition/test_date_format_converter_cp.py",
         "tests/category_partition/test_quadratic_equation_solver_cp.py",
-        "tests/metamorphic/test_date_converter_mt.py",
+        "tests/metamorphic/test_date_format_converter_mt.py",
         "tests/metamorphic/test_quadratic_equation_solver_mt.py",
     ]
 
