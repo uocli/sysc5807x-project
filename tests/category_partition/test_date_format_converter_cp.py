@@ -100,11 +100,12 @@ class TestParseDateTime:
     def test_get_date_and_time_str(self, date_str, expected):
         assert get_date_and_time_str(date_str) == expected
 
+    @freeze_time("2023-07-15 04:30:45")
     @pytest.mark.parametrize(
         "days,expected",
         [
-            (0, datetime.now().strftime("%d/%m/%Y")),
-            (1, (datetime.now() + timedelta(days=1)).strftime("%d/%m/%Y")),
+            (0, "15/07/2023"),
+            (1, "16/07/2023"),
         ],
     )
     def test_get_date_only(self, days, expected):
